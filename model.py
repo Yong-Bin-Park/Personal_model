@@ -2,7 +2,7 @@ import dlib
 import cv2
 
 detector = dlib.get_frontal_face_detector() 
-img = cv2.imread("input.jpg")
+img = cv2.imread("input2.jpg")
 faces = detector(img)
 
 print("{} faces are detected.".format(len(faces)))
@@ -14,8 +14,8 @@ win = dlib.image_window()
 win.set_image(img)
 win.add_overlay(faces)
 #얼굴인식한 output 저장
-cv2.imwrite("output.jpg",img)
+cv2.imwrite("output2.jpg",img)
 
 #얼굴 부분만 따로 저장
 crop = img[face.top():face.bottom(),face.left():face.right()]
-cv2.imwrite("cropped.jpg",crop)
+cv2.imwrite("cropped2.jpg",crop)
