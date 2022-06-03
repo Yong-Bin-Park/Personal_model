@@ -1,21 +1,32 @@
-import dlib
-import cv2
+import tensorflow as tf
+# from tensorflow.examples.tutorials.mnist import input_data
+import os
+import numpy as np
+import PIL
+import dataset
 
-detector = dlib.get_frontal_face_detector() 
-img = cv2.imread("input2.jpg")
-faces = detector(img)
-
-print("{} faces are detected.".format(len(faces)))
-for face in faces:
-    print("left, top, right, bottom : ",face.left(), face.top(), face.right(), face.bottom())
-    cv2.rectangle(img,(face.left(), face.top()), (face.right(), face.bottom()), (0,0,255),2)
+np.set_printoptions(linewidth=1000)
+def save_model(h5_path, model_path):
+    model = tf.keras.Sequential()
+    model.add(tf.keras.layers.Dense(10, activation='softmax', input_shape=[784]))
     
-win = dlib.image_window()
-win.set_image(img)
-win.add_overlay(faces)
-#얼굴인식한 output 저장
-cv2.imwrite("output2.jpg",img)
-
-#얼굴 부분만 따로 저장
-crop = img[face.top():face.bottom(),face.left():face.right()]
-cv2.imwrite("cropped2.jpg",crop)
+    model.compile(optimizer=tf.keras.optimizers.Adam(lr=0.001),
+                  loss=tf.keras.losses.sparse_categorical_crossentropy,
+                  metrics=['acc'])    
+    
+    # mnist = input_data.read_data_sets('mnist')
+    skin = dataset.trainset
+    model.fit(dataset.images, dataset.labels,
+              validation_data=[dataset.valid_images, dataset.valid_labels],
+              epochs=15, batch_size=128, verbose=0)
+    # 케라스 모델과 변수 모두 저장
+    model.save('/skin.h5')
+    # -------------------------------------- #
+    # 저장한 파일로부터 모델 변환 후 다시 저장
+    converter = tf.lite.TFLiteConverter.from_keras_model_file('/skin.h5')
+    flat_data = converter.convert()
+    
+    with open('/skin.h5', 'wb') as f:
+        f.write(flat_data)
+        
+save_model('./skin.h5', './skin.tflite')
